@@ -1,0 +1,56 @@
+function lagChecker(){
+
+  function fun(elem, ipport) {
+    elem.disabled = true;
+    elem.innerText = 'ping...'
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", `http://127.0.0.1:8012/?ipport=${ipport}`, true);
+    xhr.onload = function (e) {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          elem.disabled = false;
+          elem.innerText = xhr.responseText;
+        } else {
+          console.error(xhr.statusText);
+        }
+      }
+    };
+    xhr.onerror = function (e) {
+      console.error(xhr.statusText);
+    };
+    xhr.send(null); 
+  }
+
+  function resetButtons(){
+    document.querySelectorAll('.lagcheckbutton').forEach(x => x.remove())
+    Array.from(document.querySelectorAll('.mention')).forEach(el => {
+        var lagcheckButton = document.createElement('button')
+        lagcheckButton.innerText='LC';
+        lagcheckButton.className = 'lagcheckbutton';
+        lagcheckButton.style['margin-right']='4px';
+        [_, ipport] = el.nextSibling.textContent.match(/(\d+\.\d+\.\d+\.\d+:\d+)/);
+        lagcheckButton.addEventListener('click',() => 
+        fun(lagcheckButton, ipport));
+        el.parentNode.insertBefore(lagcheckButton, el);
+    });
+  }
+
+  function createLagcheckButton(){
+    tensokuHL = 'https://discordapp.com/channels/283812332520341505/289033094160318464';
+    if(location.href!==tensokuHL) return;
+    if(document.querySelector('.lagcheckrefbutton')) return;
+    const refButton = document.createElement('button')
+    refButton.innerText = 'LF'
+    refButton.className = 'lagcheckrefbutton';
+    refButton.style.margin='4px'
+    refButton.addEventListener('click',() => resetButtons() );
+    bosyu = document.querySelector('strong')
+    bosyu.parentNode.insertBefore(refButton, bosyu)
+  }
+
+  createLagcheckButton();
+
+}
+
+
+var timeLagChecker = setInterval(() => lagChecker(),1*1000);
