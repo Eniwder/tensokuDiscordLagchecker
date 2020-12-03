@@ -1,36 +1,41 @@
 function lagChecker(){
 
-  function fun(elem, ipport) {
+  function copyIpport(ipport){
+    document.addEventListener("copy" , function(e)  { 
+      e.clipboardData.setData("text/plain" , ipport);    
+      e.preventDefault();
+      document.removeEventListener("copy", this); 
+    });
+    document.execCommand("copy");
+  }
+
+  function checkLag(elem, ipport) {
     elem.disabled = true;
     elem.innerText = 'ping...'
     var xhr = new XMLHttpRequest();
     xhr.open("GET", `http://127.0.0.1:8012/?ipport=${ipport}`, true);
     xhr.onload = function (e) {
+      elem.disabled = false;
       if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          elem.disabled = false;
-          elem.innerText = xhr.responseText;
-        } else {
-          console.error(xhr.statusText);
-        }
+        if (xhr.status === 200) elem.innerText = xhr.responseText;
+        else console.error(xhr.statusText);
       }
     };
-    xhr.onerror = function (e) {
-      console.error(xhr.statusText);
-    };
+    xhr.onerror = e => console.error(xhr.statusText);
     xhr.send(null); 
+    copyIpport(ipport);
   }
 
   function resetButtons(){
     document.querySelectorAll('.lagcheckbutton').forEach(x => x.remove())
     Array.from(document.querySelectorAll('.mention')).forEach(el => {
-        var lagcheckButton = document.createElement('button')
+        const lagcheckButton = document.createElement('button')
         lagcheckButton.innerText='LC';
         lagcheckButton.className = 'lagcheckbutton';
         lagcheckButton.style['margin-right']='4px';
+        lagcheckButton.setAttribute('data-ipport', ipport); 
         [_, ipport] = el.nextSibling.textContent.match(/(\d+\.\d+\.\d+\.\d+:\d+)/);
-        lagcheckButton.addEventListener('click',() => 
-        fun(lagcheckButton, ipport));
+        lagcheckButton.addEventListener('click',function(){ checkLag(lagcheckButton, this.getAttribute('data-ipport')) });
         el.parentNode.insertBefore(lagcheckButton, el);
     });
   }
